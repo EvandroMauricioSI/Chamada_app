@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizar Turmas</title>
+</head>
+<body>
+    <h1>Turmas</h1>
+    <ul>
+        {% for turma in turmas %}
+            <li>{{ turma[0] }}</li>
+        {% endfor %}
+    </ul>
+    <a href="/">Voltar para a página inicial</a>
+</body>
+</html>

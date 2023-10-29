@@ -1,0 +1,14 @@
+Passo1:
+    cd chamada_app
+
+Passo2:
+    pip install Flask Werkzeug geopy
+
+Passo3:
+    sqlite3 chamada.db < schema.sql
+    sqlite3 chamada.db < populate_db.sql
+    //sqlite3 chamada.db
+
+Passo4:
+    python app.py
+    se usar python 3.12 : python3 app.py

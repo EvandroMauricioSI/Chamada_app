@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Presenças dos Alunos</title>
+</head>
+<body>
+    <h2>Presenças dos Alunos</h2>
+    <table border="1">
+        <tr>
+            <th>Aluno</th>
+            <th>Data</th>
+            <th>Hora</th>
+            <th>Turma</th>
+        </tr>
+        {% for presence in presences %}
+        <tr>
+            <td>{{ presence['username'] }}</td>
+            <td>{{ presence['data'] }}</td>
+            <td>{{ presence['hora'] }}</td>
+            <td>{{ presence['nome'] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

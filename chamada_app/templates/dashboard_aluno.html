@@ -1,0 +1,37 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard - Aluno</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .greeting { font-size: 24px; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        table, th, td { border: 1px solid black; }
+        th, td { padding: 10px; text-align: left; }
+        .update-location-btn { display: block; margin: 20px auto; padding: 10px 15px; background-color: #007BFF; color: white; border: none; cursor: pointer; }
+        .update-location-btn:hover { background-color: #0056b3; }
+        .register-btn { background-color: #4CAF50; color: white; border: none; cursor: pointer; padding: 5px 10px; }
+        .disabled-btn { background-color: #cccccc; color: white; border: none; cursor: not-allowed; padding: 5px 10px; }
+    </style>
+</head>
+<body>
+    <div class="greeting">Olá, Aluno: [nome do aluno]</div>
+    <table>
+        <tr>
+            <th>Turma</th>
+            <th>Professor</th>
+            <th>Horário</th>
+            <th>Ação</th>
+        </tr>
+        <!-- Placeholder for the list of classes and register presence button from the backend -->
+    </table>
+    <button class="update-location-btn" onclick="updateLocation()">Atualizar Localização</button>
+    <script>
+        function updateLocation() {
+            // Placeholder for the logic to update student's location
+        }
+    </script>
+    <p><a href="index.html">Voltar para a página inicial</a></p>
+</body>
+</html>
