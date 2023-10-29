@@ -1,0 +1,56 @@
+html {
+    font: 15pt Arial;
+}
+
+body { font-family: Arial, sans-serif; margin: 40px; text-align: center; }
+        
+h1 {font-size: 28px; margin-bottom: 20px;}
+
+form {max-width: 300px; margin: 20px auto;}
+
+img.education-icon { width: 100px; height: 100px; margin: 20px; }
+        
+input { width: 100%; padding: 10px; margin: 5px 0; }
+
+.button-back {
+    display: inline-block;
+    padding: 5px 10px;
+    min-width: 200px;
+    color: black;
+    text-align: center;
+    text-decoration: none;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 8px;
+    border: none;
+}
+.button-ok {
+    display: inline-block;
+    padding: 10px 20px;
+    min-width: 200px;
+    background-color: #4176e1;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 8px;
+    border: none;
+   }
+.button-ok:hover { background-color: #054F77; color: #fff2bc}
+
+
+.description { font-size: 20px; margin: 20px 0; }
+
+a {
+    color: black;
+    text-align: center;
+    text-decoration: none;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 8px;
+    border: none;
+   }

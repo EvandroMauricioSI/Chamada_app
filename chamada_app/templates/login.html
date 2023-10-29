@@ -2,15 +2,8 @@
 
 <html>
 <head>
+    <link rel="stylesheet" type="text/css" href="static/css/styles.css">
     <title>Login</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 40px; text-align: center; }
-        h1 { font-size: 28px; margin-bottom: 20px; }
-        form { max-width: 300px; margin: 20px auto; }
-        input { width: 100%; padding: 10px; margin: 5px 0; }
-        button { padding: 10px 15px; width: 100%; }
-        a { display: block; margin-top: 20px; text-decoration: none; }
-    </style>
 </head>
 <body>
     <h1>Login</h1>
@@ -19,11 +12,12 @@
         <input type="text" id="username" name="username" required>
         <label for="password">Senha:</label>
         <input type="password" id="password" name="password" required>
-        <button type="submit">Login</button>
+        <button class="button-ok" type="submit">Login</button>
     </form>
-    <a href="/create_user">Criar novo usuário</a>
-    <a href="#">Esqueceu sua senha?</a>
+    <button class="button-ok" type="submit">Criar novo usuário</button>
+    <a href="#" class="button-back">Esqueceu sua senha?</a>
     <p><a href="index.html">Voltar para a página inicial</a></p>
+
 </body>
 </html>
 
