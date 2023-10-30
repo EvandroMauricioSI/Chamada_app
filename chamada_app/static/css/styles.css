@@ -1,18 +1,27 @@
 html {
     font: 15pt Arial;
 }
+/* Estilizando CORPO DO SITE */
+body { font-family: Arial, sans-serif; margin: 40px; text-align: center; background-color: #F1F3F4;
+width: 100%; height: 100vh;}
 
-body { font-family: Arial, sans-serif; margin: 40px; text-align: center; }
-        
+/* Estilizando CONTAINER */
+.container {
+    border: 2px groove gray;
+    width: 600px;
+    margin: 20px auto;
+    padding: 20px;
+}
 h1 { /* Estilizando o h1 */
-    display: flex;
+    display: justify;
     justify-content: center;
     align-items: center;
     padding: 10px 20px;
     min-width: 50px;
     min-height: 30px;
-    border-radius: 8px;
+    border-bottom: black;
     font-size: 28px;
+
     background-color: #d6dee2;
     margin-top: 2px;
     margin: 30px auto;
@@ -33,9 +42,9 @@ h2 { /* Estilizando o h2 */
 
 form {max-width: 300px; margin: 20px auto;}
 
-img.education-icon { width: 100px; height: 100px; margin: 20px; }
+img.education-icon { width: 100px; height: 100px; margin: 0px; }
         
-input { width: 100%; padding: 10px; margin: 5px 0; }
+input { width: 100%; padding: 10px; margin: 10px 0; }
 
 .button-back {
     display: inline-block;
@@ -47,8 +56,9 @@ input { width: 100%; padding: 10px; margin: 5px 0; }
     font-size: 16px;
     margin: 4px 2px;
     cursor: pointer;
-    border-radius: 8px;
+
     border: none;
+    box-shadow: 5px 5px grey;
 }
 .button-ok {
     display: inline-block;
@@ -64,10 +74,24 @@ input { width: 100%; padding: 10px; margin: 5px 0; }
     border: none;
     height: 100%;
     margin: 5px;
+ }
+
+.button-exit {
+    display: inline-block;
+    padding: 10px 20px;
+    min-width: 270px;
+    min-height: 20px;
+    background-color: red;
+    color: white;
+    text-align: center;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 8px;
+    border: none;
+    height: 100%;
+    margin: 5px;
 
 }.button-ok:hover { background-color: #054F77; color: #fff2bc}
-
-.description { font-size: 20px; margin: 20px 0; }
 
 a {
     color: black;
@@ -79,10 +103,16 @@ a {
     border-radius: 8px;
     border: none;
    }
+.warn{
+    color: red;
+    font-size: 12px;
+}
 
 #mapid{
-    width: 630px; height:400px;
-    margin: 0 auto; /* Define as margens esquerda e direita como "auto" para centralizar horizontalmente */
+    width: 590px; height:400px;
+    margin: 0 auto;
+    border: 2px solid white;
+    padding: 20px;
 
 }
 /* Estilizando o formulário */
@@ -102,6 +132,8 @@ label {
 
 /* Estilizando campos de entrada */
 input{
+    color: #474a51;
+    font-size: 18px;
     width: 90%;
     padding: 8px;
     margin: 0 auto;
@@ -109,3 +141,35 @@ input{
     border-radius: 8px;
     background-color: #DCDCDC;
 }
+
+select { width: 100%; padding: 20px; margin: 10px 0; }
+
+/* Estilizando classes do dashboard_professor */
+.greeting { font-size: 24px; margin-bottom: 20px; }
+
+.options { max-width: 300px; margin: 20px auto; }
+
+a.option {
+    display: block;
+    padding: 10px;
+    text-align: center;
+    border: 1px solid #ccc;
+    margin: 5px 0;
+    text-decoration: none;
+} a.option:hover { background-color: #f5f5f5; }
+
+.stats { margin-top: 40px; }
+
+.greeting { font-size: 24px; margin-bottom: 20px; }
+
+table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+table, th, td { border: 1px solid black; }
+th, td { padding: 10px; text-align: left; }
+
+.update-location-btn {
+    background-color: #007BFF;
+    color: white; border: none;
+    cursor: pointer;
+    padding: 5px 10px; }
+
+.update-location-btn:hover { background-color: #0056b3; }

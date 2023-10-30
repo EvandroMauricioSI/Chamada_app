@@ -1,50 +1,33 @@
 <!DOCTYPE html>
 
 <html>
-<head>
-    <title>Chamada App</title>
+    <head>
+        <title>Chamada App</title>
+        <link rel="stylesheet" type="text/css" href="static/css/styles.css">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    </head>
 
-    <link rel="stylesheet" type="text/css" href="static/css/styles.css">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-</head>
-<body>
-    <h1>Bem-vindo ao Chamada App!</h1>
-    <div class="description">
+    <body>
+        <h1>Bem-vindo ao Chamada App!</h1>
+        <!--
         <h2>Uma forma divertida e eficiente de registrar presenças em sala de aula.</h2>
-    </div>
-    <img src="/static/images/uff_brasao.png" alt="Icone Educacional" class="education-icon">
+        -->
+        <img src="/static/images/uff_brasao.png" alt="Icone Educacional" class="education-icon">
 
-    <div>
-        <a href="/login" class="button-ok"> Login </a>
-        <a href="/create_user" class="button-ok"> Cadastrar </a>
-    </div>
-    </p></p></p></p>
+        <div>
+            <a href="/login" class="button-ok"> Login </a>
+            <a href="/create_user" class="button-ok"> Cadastrar </a>
+        </div>
+        <br />
 
-    <div id="mapid">
+        <div id="mapid">
+            <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+            <script src="static/map.js"></script>
+        </div>
+    </body>
 
-        <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-        <script>
-            var mymap = L.map('mapid').setView([51.505, -0.09], 13);
+    <footer></footer>
 
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
-            }).addTo(mymap);
 
-            if ("geolocation" in navigator) {
-                navigator.geolocation.getCurrentPosition(function(position) {
-                    var lat = position.coords.latitude;
-                    var lon = position.coords.longitude;
-                    mymap.setView([lat, lon], 10);
-                    L.marker([lat, lon]).addTo(mymap)
-                        .bindPopup("Você está aqui.").openPopup();
-                });
-            } else {
-                console.log("Geolocalização não suportada");
-            }
-        </script>
-    </div>
-
-</body>
 </html>
