@@ -4,7 +4,32 @@ html {
 
 body { font-family: Arial, sans-serif; margin: 40px; text-align: center; }
         
-h1 {font-size: 28px; margin-bottom: 20px;}
+h1 { /* Estilizando o h1 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 20px;
+    min-width: 50px;
+    min-height: 30px;
+    border-radius: 8px;
+    font-size: 28px;
+    background-color: #d6dee2;
+    margin-top: 2px;
+    margin: 30px auto;
+    max-width: 600px
+}
+h2 { /* Estilizando o h2 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 50px;
+    min-height: 30px;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-top: 30px;
+    margin: 30px auto;
+    max-width: 600px
+}
 
 form {max-width: 300px; margin: 20px auto;}
 
@@ -15,7 +40,7 @@ input { width: 100%; padding: 10px; margin: 5px 0; }
 .button-back {
     display: inline-block;
     padding: 5px 10px;
-    min-width: 200px;
+    min-width: 400px;
     color: black;
     text-align: center;
     text-decoration: none;
@@ -28,19 +53,19 @@ input { width: 100%; padding: 10px; margin: 5px 0; }
 .button-ok {
     display: inline-block;
     padding: 10px 20px;
-    min-width: 200px;
+    min-width: 270px;
+    min-height: 30px;
     background-color: #4176e1;
     color: white;
     text-align: center;
-    text-decoration: none;
     font-size: 16px;
-    margin: 4px 2px;
     cursor: pointer;
     border-radius: 8px;
     border: none;
-   }
-.button-ok:hover { background-color: #054F77; color: #fff2bc}
+    height: 100%;
+    margin: 5px;
 
+}.button-ok:hover { background-color: #054F77; color: #fff2bc}
 
 .description { font-size: 20px; margin: 20px 0; }
 
@@ -54,3 +79,33 @@ a {
     border-radius: 8px;
     border: none;
    }
+
+#mapid{
+    width: 630px; height:400px;
+    margin: 0 auto; /* Define as margens esquerda e direita como "auto" para centralizar horizontalmente */
+
+}
+/* Estilizando o formulário */
+form {
+    width: 300px;
+    margin: 0 auto;
+
+}
+
+/* Estilizando rótulos */
+label {
+    display: inline-block;
+    width: 100px;
+    text-align: right;
+    margin-right: 10px;
+}
+
+/* Estilizando campos de entrada */
+input{
+    width: 90%;
+    padding: 8px;
+    margin: 0 auto;
+    border: 1px #ccc1c;
+    border-radius: 8px;
+    background-color: #DCDCDC;
+}
