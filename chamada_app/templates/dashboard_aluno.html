@@ -1,4 +1,4 @@
-
+<h1>Bem-vindo, {{ nome }}</h1>
 <!DOCTYPE html>
 <html>
 <head>
@@ -17,15 +17,22 @@
     </style>
 </head>
 <body>
-    <div class="greeting">Olá, Aluno: [nome do aluno]</div>
-    <table>
+    <div class="greeting">Olá, Aluno: {{ nome }}</div>
+    <table turmasDoAluno>
         <tr>
             <th>Turma</th>
             <th>Professor</th>
             <th>Horário</th>
             <th>Ação</th>
         </tr>
-        <!-- Placeholder for the list of classes and register presence button from the backend -->
+        {% for turma in turmas %}
+        <tr>
+            <td>{{ turma[0] }}</td>
+            <td>{{ turma[1] }}</td>
+            <td>Horário</td>
+            <td><button class="register-btn">Registrar Presença</button></td>
+        </tr>
+        {% endfor %}
     </table>
     <button class="update-location-btn" onclick="updateLocation()">Atualizar Localização</button>
     <script>

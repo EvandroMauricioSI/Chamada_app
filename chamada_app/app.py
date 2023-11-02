@@ -1,7 +1,9 @@
 
 allowed_radius = 100  # Radius in meters within which student must be to register presence
 
+import dbm
 import math
+from sqlite3 import dbapi2
 
 def haversine_distance(lat1, lon1, lat2, lon2):
     """Calculate the Haversine distance between two points on the earth."""
@@ -83,7 +85,7 @@ def user_login():
         # Adicione esta linha para imprimir o usuário buscado do banco de dados
         print(user)
 
-        if user and password:
+        if user and user[2] == password:
             # Adicione esta linha para imprimir se a senha estiver correta
             print("Senha correta!")
             
@@ -167,5 +169,93 @@ def register_attendance(turma_id):
     db.commit()
     return redirect(url_for('dashboard'))
 
+def simplified_dashboard_aluno():
+    if 'user_id' not in session or session['role'] != 'Aluno':
+        return redirect(url_for('index'))
+    with sqlite3.connect('mydb.db') as conn:
+        cursor = conn.cursor()
+        # Simplificando a lógica de recuperação de turmas
+        turmas = cursor.execute('''
+            SELECT t.nome, u.username
+            FROM turmas t
+            INNER JOIN aluno_turma at ON t.id = at.turma_id
+            INNER JOIN users u ON t.professor_id = u.id
+            WHERE at.aluno_id = ?
+        ''', (session['user_id'],)).fetchall()
+    return render_template('dashboard_aluno.html', nome=session['username'], turmas=turmas)
 if __name__ == '__main__':
     app.run(debug=True)
+@app.route('/dashboard_aluno')
+def dashboard_aluno():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    else:
+        username = session.get('username')
+        cur = get_db().cursor()
+        # Buscando o nome do aluno e suas turmas
+        cur.execute('SELECT nome FROM alunos WHERE username = ?', [username])
+        aluno_name = cur.fetchone()[0]
+        cur.execute('SELECT nome FROM turmas WHERE aluno_username = ?', [username])
+        turmas = cur.fetchall()
+        return render_template("dashboard_aluno.html", aluno_name=aluno_name, turmas=turmas)
+
+
+
+
+@app.route('/dashboard_aluno')
+def dashboard_aluno():
+    # Certificar-se de que o usuário está logado como aluno
+    if 'user_id' not in session or session['role'] != 'Aluno':
+        return redirect(url_for('index'))
+
+    with sqlite3.connect('mydb.db') as conn:
+        cursor = conn.cursor()
+        # Recuperando as turmas do aluno logado
+        turmas = cursor.execute('''
+            SELECT t.nome, u.username
+            FROM turmas t
+            INNER JOIN aluno_turma at ON t.id = at.turma_id
+            INNER JOIN users u ON t.professor_id = u.id
+            WHERE at.aluno_id = ?
+        ''', (session['user_id'],)).fetchall()
+    return render_template('dashboard_aluno.html', nome=session['username'], turmas=turmas)
+
+@app.route('/dashboard_aluno')
+def dashboard_aluno():
+    user_id = session.get('user_id')  # Suponho que haja algum mecanismo de sessão para identificar o usuário logado
+    
+    # Aqui, fazemos uma consulta ao banco de dados para buscar as turmas, professores e horários associados ao aluno
+    with dbm.connect() as conn:
+        # Esta é uma consulta SQL exemplo. A consulta real pode variar com base na estrutura do banco de dados.
+        result = conn.execute('''
+            SELECT t.nome AS turma, p.nome AS professor, t.horario
+            FROM turmas t
+            JOIN professores p ON t.professor_id = p.id
+            JOIN matriculas m ON m.turma_id = t.id
+            WHERE m.aluno_id = ?
+        ''', (user_id,))
+        
+        turmas = result.fetchall()
+
+    # Passamos as informações das turmas para o template
+    return render_template('dashboard_aluno.html', turmas=turmas)
+
+@app.route('/dashboard_aluno')
+def dashboard_aluno():
+    user_id = session.get('user_id')  # Suponho que haja algum mecanismo de sessão para identificar o usuário logado
+    
+    # Aqui, fazemos uma consulta ao banco de dados para buscar as turmas, professores e horários associados ao aluno
+    with dbapi2.connect() as conn:
+        # Esta é uma consulta SQL exemplo. A consulta real pode variar com base na estrutura do banco de dados.
+        result = conn.execute('''
+            SELECT t.nome AS turma, p.nome AS professor, t.horario
+            FROM turmas t
+            JOIN professores p ON t.professor_id = p.id
+            JOIN matriculas m ON m.turma_id = t.id
+            WHERE m.aluno_id = ?
+        ''', (user_id,))
+        
+        turmas = result.fetchall()
+
+    # Passamos as informações das turmas para o template
+    return render_template('dashboard_aluno.html', turmas=turmas)
