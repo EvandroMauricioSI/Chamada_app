@@ -1,43 +1,221 @@
 <!DOCTYPE html>
-
 <html>
 <head>
     <link rel="stylesheet" type="text/css" href="static/css/styles.css">
     <title>Dashboard - Professor</title>
+    <style>
+        /* Estilo para a mensagem toast */
+        .toast {
+            visibility: hidden;
+            max-width: 250px;
+            height: 50px;
+            line-height: 50px;
+            margin-left: -125px;
+            padding: 0 20px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 2px;
+            position: fixed;
+            z-index: 1;
+            left: 50%;
+            bottom: 30px;
+            font-size: 17px;
+            white-space: nowrap;
+        }
+        .show {
+            visibility: visible;
+            -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+            animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
+        @-webkit-keyframes fadein {
+            from {bottom: 0; opacity: 0;}
+            to {bottom: 30px; opacity: 1;}
+        }
+        @keyframes fadein {
+            from {bottom: 0; opacity: 0;}
+            to {bottom: 30px; opacity: 1;}
+        }
+        @-webkit-keyframes fadeout {
+            from {bottom: 30px; opacity: 1;}
+            to {bottom: 0; opacity: 0;}
+        }
+        @keyframes fadeout {
+            from {bottom: 30px; opacity: 1;}
+            to {bottom: 0; opacity: 0;}
+        }
+    </style>
+    <script>
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition);
+            } else { 
+                document.getElementById("location").innerHTML = "Geolocation is not supported by this browser.";
+            }
+        }
+
+        function showPosition(position) {
+            document.getElementById("location").innerHTML = "Você está em: Latitude: " + position.coords.latitude + 
+            ", Longitude: " + position.coords.longitude;
+            showToast("Localização Atualizada");
+        }
+		
+		let latitude, longitude;
+		
+
+		function updateLocation() {
+		  return new Promise((resolve, reject) => {
+			if (navigator.geolocation) {
+			  navigator.geolocation.getCurrentPosition(position => {
+				latitude = position.coords.latitude;
+				longitude = position.coords.longitude;
+				document.getElementById("location").innerHTML = "Você está em: Latitude: " + latitude + ", Longitude: " + longitude;
+				showToast("Localização Atualizada");
+				resolve();
+			  }, reject);
+			} else {
+			  reject("Geolocation is not supported by this browser.");
+			}
+		  });
+		}
+
+        function showToast(message) {
+            var x = document.getElementById("toast");
+            x.className = "show";
+            x.innerText = message;
+            setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
+        }
+
+		
+    </script>
 </head>
 <body>
-    <div class="greeting"><h1>Olá, Professor: [nome do professor]</h1></div>
-    <div class="options">
-        <a href="#" class="button-ok">Turmas Associadas</a>
+    <div class="greeting">
+        <h1>Olá, Professor: {{ nome }}</h1>
+        <p id="location">Localização: Carregando...</p>
+    </div>
+	<div class="options">
+        <a href="#" class="button-ok">Ver Turmas em que estou associado</a>
         <a href="#" class="button-ok">Consultar Presenças das Turmas</a>
         <a href="#" class="button-ok">Editar Perfil</a>
         <a href="/exit" class="button-exit"> Sair </a>
     </div>
-    <div class="stats">
+	<div class="stats">
         <!-- Placeholder for attendance statistics from the backend -->
         <h3>Estatísticas de Presença</h3>
         <p>Presenças registradas: [número]</p>
     </div>
-</body>
-</html>
-
-
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Dashboard - Professor</title>
-</head>
-<body>
-    <div class="greeting">Olá, Professor: [nome do professor]</div>
     <table>
         <tr>
             <th>Turma</th>
-            <th>Professor</th>
-            <th>Horário</th>
+			<th>Data</th>
+            <th>HorárioInicio</th>
+			<th>HorárioFinal</th>
+			<th>Latitude</th>
+			<th>Longitude</th>
             <th>Ação</th>
         </tr>
-        <!-- Placeholder for the list of classes and update location button from the backend -->
+        {% for turma in turmas %}
+        <tr>
+            <td>{{ turma[0] }}</td>
+			<td>DataFromAula</td>
+            <td>HoraAberturaFromAula</td>
+			<td>HoraFechamentoFromAula</td>
+			<td>LatitudeFromAula</td>
+			<td>LongitudeFromAula</td>
+            <td><button onclick="createLesson('{{ turma[0] }}')">Criar Aula</button></td>
+			
+        </tr>
+        {% endfor %}
     </table>
-    <p><a href="http://127.0.0.1:5000">Voltar para a página inicial</a></p>
+	
+	<button id="update-btn" onclick="updateLocation()">Atualizar Localização</button>
+	
+	<td><button class="register-btn" onclick="habilitarPresenca(this)">Habilitar Presença</button></td>
+	
+	
+    <div id="toast" class="toast"></div>
+    <p><a href="index.html">Voltar para a página inicial</a></p>
+
+<script>
+function habilitarPresenca(btn) {
+  btn.disabled = true; // Desabilita o botão imediatamente
+  setTimeout(function() {
+    btn.innerText = 'Fechar presença'; // Altera o texto do botão após 2 segundos
+    btn.disabled = false; // Reabilita o botão após 2 segundos
+    // Faz uma solicitação AJAX para registrar a abertura da presença
+    fetch('/registrar_abertura_presenca', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        turma: btn.getAttribute('data-turma'), // Pega a turma da linha da tabela
+        // Outros dados como data, hora e localização serão tratados no servidor
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log(data); // Tratamento de resposta do servidor
+    });
+  }, 2000);
+}
+</script>
 </body>
 </html>
+
+<!-- Formulário Oculto para Criação de Aula -->
+<form id="createLessonForm" method="post" action="/create_lesson" style="display:none;">
+  <input type="hidden" name="turma_id" id="turma_id">
+  <input type="hidden" name="data" id="data">
+  <input type="hidden" name="horaAbertura" id="horaAbertura">
+  <input type="hidden" name="horaFechamento" id="horaFechamento">
+  <input type="hidden" name="latitude" id="latitude">
+  <input type="hidden" name="longitude" id="longitude">
+ 
+
+  <!-- Adicionar outros campos necessários aqui -->
+</form>
+
+<script>
+function createLesson(turma_id) {
+  console.log('ID da turma recebido na função createLesson:', turma_id);
+  updateLocation().then(() => {
+    let lat = parseFloat(latitude);
+    let long = parseFloat(longitude);
+
+    if (isNaN(lat) || isNaN(long)) {
+      showToast("Latitude ou Longitude inválidas!");
+      return; // Não continua se os valores não forem números
+    }
+	
+    var now = new Date();
+    var closingTime = new Date(now.getTime() + 4*60*60*1000);
+
+    // Definir valores do formulário
+    document.getElementById('turma_id').value = turma_id;
+    document.getElementById('latitude').value = latitude;
+    document.getElementById('longitude').value = longitude;
+    document.getElementById('data').value = now.toISOString().split('T')[0];
+    document.getElementById('horaAbertura').value = now.toTimeString().split(' ')[0];
+    document.getElementById('horaFechamento').value = closingTime.toTimeString().split(' ')[0];
+
+    // Logs para depuração
+    console.log('turma_id:', turma_id);
+    console.log('latitude:', latitude);
+    console.log('longitude:', longitude);
+    console.log('data:', document.getElementById('data').value);
+    console.log('horaAbertura:', document.getElementById('horaAbertura').value);
+    console.log('horaFechamento:', document.getElementById('horaFechamento').value);
+
+    // Submeter o formulário
+    document.getElementById('createLessonForm').submit();
+
+  }).catch(error => {
+    showToast("Erro ao atualizar a localização: " + error);
+  });
+}
+
+
+
+</script>

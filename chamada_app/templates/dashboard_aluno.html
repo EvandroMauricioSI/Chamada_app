@@ -1,24 +1,86 @@
-<h1>Bem-vindo, {{ nome }}</h1>
 <!DOCTYPE html>
 <html>
 <head>
     <link rel="stylesheet" type="text/css" href="static/css/styles.css">
     <title>Dashboard - Aluno</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 40px; }
-        .greeting { font-size: 24px; margin-bottom: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        table, th, td { border: 1px solid black; }
-        th, td { padding: 10px; text-align: left; }
-        .update-location-btn { display: block; margin: 20px auto; padding: 10px 15px; background-color: #007BFF; color: white; border: none; cursor: pointer; }
-        .update-location-btn:hover { background-color: #0056b3; }
-        .register-btn { background-color: #4CAF50; color: white; border: none; cursor: pointer; padding: 5px 10px; }
-        .disabled-btn { background-color: #cccccc; color: white; border: none; cursor: not-allowed; padding: 5px 10px; }
+        /* Estilo para a mensagem toast */
+        .toast {
+            visibility: hidden;
+            max-width: 250px;
+            height: 50px;
+            line-height: 50px;
+            margin-left: -125px;
+            padding: 0 20px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 2px;
+            position: fixed;
+            z-index: 1;
+            left: 50%;
+            bottom: 30px;
+            font-size: 17px;
+            white-space: nowrap;
+        }
+        .show {
+            visibility: visible;
+            -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+            animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
+        @-webkit-keyframes fadein {
+            from {bottom: 0; opacity: 0;}
+            to {bottom: 30px; opacity: 1;}
+        }
+        @keyframes fadein {
+            from {bottom: 0; opacity: 0;}
+            to {bottom: 30px; opacity: 1;}
+        }
+        @-webkit-keyframes fadeout {
+            from {bottom: 30px; opacity: 1;}
+            to {bottom: 0; opacity: 0;}
+        }
+        @keyframes fadeout {
+            from {bottom: 30px; opacity: 1;}
+            to {bottom: 0; opacity: 0;}
+        }
     </style>
+    <script>
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition);
+            } else { 
+                document.getElementById("location").innerHTML = "Geolocation is not supported by this browser.";
+            }
+        }
+
+        function showPosition(position) {
+            document.getElementById("location").innerHTML = "Você está em: Latitude: " + position.coords.latitude + 
+            ", Longitude: " + position.coords.longitude;
+            showToast("Localização Atualizada");
+        }
+
+        function updateLocation() {
+            document.getElementById("update-btn").disabled = true;
+            setTimeout(function() {
+                document.getElementById("update-btn").disabled = false;
+            }, 2000);
+            showToast("Atualizando localização");
+            getLocation();
+        }
+
+        function showToast(message) {
+            var x = document.getElementById("toast");
+            x.className = "show";
+            x.innerText = message;
+            setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
+        }
+    </script>
 </head>
 <body>
-    <div class="greeting">Olá, Aluno: {{ nome }}</div>
-    <table turmasDoAluno>
+    <h1>Bem-vindo, {{ nome }}</h1>
+    <p id="location">Localização: Carregando...</p>
+    <table>
         <tr>
             <th>Turma</th>
             <th>Professor</th>
@@ -34,12 +96,33 @@
         </tr>
         {% endfor %}
     </table>
-    <button class="update-location-btn" onclick="updateLocation()">Atualizar Localização</button>
-    <script>
-        function updateLocation() {
-            // Placeholder for the logic to update student's location
-        }
-    </script>
+	
+	<h2>Aulas Disponíveis</h2>
+<table>
+    <tr>
+        <th>ID da Aula</th>
+        <th>ID da Turma</th>
+        <th>Data</th>
+        <th>Hora de Abertura</th>
+        <th>Hora de Fechamento</th>
+        <th>Latitude</th>
+        <th>Longitude</th>
+        <th>Ação</th>
+    </tr>
+    {% for aula in aulas %}
+    <tr>
+        <td>{{ aula[0] }}</td>
+        <td>{{ aula[1] }}</td>
+        <td>{{ aula[2] }}</td>
+        <td>{{ aula[3] }}</td>
+        <td>{{ aula[4] }}</td>
+        <td>{{ aula[5] }}</td>
+        <td>{{ aula[6] }}</td>
+        <td><button class="register-btn">Registrar Presença</button></td>
+    </tr>
+    {% endfor %}
+</table>    <button id="update-btn" onclick="updateLocation()">Atualizar Localização</button>
+    <div id="toast" class="toast"></div>
     <p><a href="index.html">Voltar para a página inicial</a></p>
 </body>
 </html>

@@ -13,8 +13,8 @@ CREATE TABLE turmas (
     id INTEGER PRIMARY KEY,
     nome TEXT NOT NULL,
     professor_id INTEGER,
-    latitude REAL,
-    longitude REAL,
+    latitude REAL NOT NULL,
+    longitude REAL NOT NULL,
     FOREIGN KEY (professor_id) REFERENCES users(id)
 );
 
@@ -34,7 +34,19 @@ CREATE TABLE presencas (
     turma_id INTEGER,
     data TEXT NOT NULL,
     hora TEXT NOT NULL,
-    local TEXT NOT NULL,
+    latitude REAL NOT NULL,
+    longitude REAL NOT NULL,
     FOREIGN KEY (aluno_id) REFERENCES users(id),
+    FOREIGN KEY (turma_id) REFERENCES turmas(id)
+);
+
+CREATE TABLE Aulas (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    turma_id INTEGER NOT NULL,
+    data TEXT NOT NULL, -- SQLite não possui tipo DATE, TEXT é comum para armazenar datas
+    horaAbertura TEXT NOT NULL,
+    horaFechamento TEXT NOT NULL,
+    latitude REAL NOT NULL,
+    longitude REAL NOT NULL,
     FOREIGN KEY (turma_id) REFERENCES turmas(id)
 );
