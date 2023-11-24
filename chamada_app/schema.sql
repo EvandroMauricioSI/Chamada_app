@@ -27,19 +27,7 @@ CREATE TABLE aluno_turma (
     FOREIGN KEY (turma_id) REFERENCES turmas(id)
 );
 
--- Tabela para registrar presenças
-CREATE TABLE presencas (
-    id INTEGER PRIMARY KEY,
-    aluno_id INTEGER,
-    turma_id INTEGER,
-    data TEXT NOT NULL,
-    hora TEXT NOT NULL,
-    latitude REAL NOT NULL,
-    longitude REAL NOT NULL,
-    FOREIGN KEY (aluno_id) REFERENCES users(id),
-    FOREIGN KEY (turma_id) REFERENCES turmas(id)
-);
-
+-- Tabela de Aulas
 CREATE TABLE Aulas (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     turma_id INTEGER NOT NULL,
@@ -49,4 +37,17 @@ CREATE TABLE Aulas (
     latitude REAL NOT NULL,
     longitude REAL NOT NULL,
     FOREIGN KEY (turma_id) REFERENCES turmas(id)
+);
+
+-- Tabela para registrar presenças
+CREATE TABLE presencas (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    aula_id INTEGER NOT NULL,
+    aluno_id INTEGER NOT NULL,
+    data TEXT NOT NULL,
+    hora TEXT NOT NULL,
+    latitude REAL NOT NULL,
+    longitude REAL NOT NULL,
+    FOREIGN KEY (aula_id) REFERENCES Aulas(id),
+    FOREIGN KEY (aluno_id) REFERENCES users(id)
 );

@@ -3,126 +3,354 @@
 <head>
     <link rel="stylesheet" type="text/css" href="static/css/styles.css">
     <title>Dashboard - Aluno</title>
-    <style>
-        /* Estilo para a mensagem toast */
-        .toast {
-            visibility: hidden;
-            max-width: 250px;
-            height: 50px;
-            line-height: 50px;
-            margin-left: -125px;
-            padding: 0 20px;
-            background-color: #333;
-            color: #fff;
-            text-align: center;
-            border-radius: 2px;
-            position: fixed;
-            z-index: 1;
-            left: 50%;
-            bottom: 30px;
-            font-size: 17px;
-            white-space: nowrap;
-        }
-        .show {
-            visibility: visible;
-            -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
-            animation: fadein 0.5s, fadeout 0.5s 2.5s;
-        }
-        @-webkit-keyframes fadein {
-            from {bottom: 0; opacity: 0;}
-            to {bottom: 30px; opacity: 1;}
-        }
-        @keyframes fadein {
-            from {bottom: 0; opacity: 0;}
-            to {bottom: 30px; opacity: 1;}
-        }
-        @-webkit-keyframes fadeout {
-            from {bottom: 30px; opacity: 1;}
-            to {bottom: 0; opacity: 0;}
-        }
-        @keyframes fadeout {
-            from {bottom: 30px; opacity: 1;}
-            to {bottom: 0; opacity: 0;}
-        }
-    </style>
-    <script>
-        function getLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(showPosition);
-            } else { 
-                document.getElementById("location").innerHTML = "Geolocation is not supported by this browser.";
-            }
-        }
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <img src="/static/images/uff_brasao.png" alt="Icone Educacional" class="education-icon">
+    <div id="toast-container"></div> <!-- Container para os toasts -->
+	
+	<script>
+        let currentLatitude;
+        let currentLongitude;
+        var aluno_id = "{{ aluno_id }}"; // Ajuste conforme o seu template engine
 
-        function showPosition(position) {
-            document.getElementById("location").innerHTML = "Você está em: Latitude: " + position.coords.latitude + 
-            ", Longitude: " + position.coords.longitude;
-            showToast("Localização Atualizada");
+        function getLocation() {
+          return new Promise((resolve, reject) => {
+            if (navigator.geolocation) {
+              navigator.geolocation.getCurrentPosition(position => {
+                currentLatitude = position.coords.latitude;
+                currentLongitude = position.coords.longitude;
+                document.getElementById("location").innerHTML = "Você está em: Latitude: " + currentLatitude +
+                ", Longitude: " + currentLongitude;
+                showToast("Localização Atualizada");
+                resolve(); // Resolve a promessa aqui
+              }, reject); // Rejeita a promessa em caso de erro
+            } else {
+              reject("Geolocation is not supported by this browser.");
+            }
+          });
         }
 
         function updateLocation() {
-            document.getElementById("update-btn").disabled = true;
-            setTimeout(function() {
-                document.getElementById("update-btn").disabled = false;
-            }, 2000);
-            showToast("Atualizando localização");
-            getLocation();
+          document.getElementById("update-btn").disabled = true;
+          setTimeout(function() {
+            document.getElementById("update-btn").disabled = false;
+          }, 2000);
+          showToast("Atualizando localização");
+          return getLocation(); // Retorna a promessa aqui
         }
 
-        function showToast(message) {
-            var x = document.getElementById("toast");
-            x.className = "show";
-            x.innerText = message;
-            setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
+        function showToast(message, status) {
+          // Cria o elemento toast
+          var toast = document.createElement('div');
+          toast.classList.add('toast');
+
+          // Define a classe com base no status da mensagem
+          if (status === 'success') {
+            toast.classList.add('toast-success');
+          } else if (status === 'error') {
+            toast.classList.add('toast-error');
+          } else {
+            toast.classList.add('toast-info');
+          }
+
+          // Define a mensagem
+          toast.textContent = message;
+
+          // Adiciona o toast ao container
+          var container = document.getElementById('toast-container');
+          if (!container) {
+            // Cria o container se ele não existir
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            document.body.appendChild(container);
+          }
+          container.appendChild(toast);
+
+          // Remove o toast após 4 segundos
+          setTimeout(function() {
+            container.removeChild(toast);
+            if (container.childNodes.length === 0) {
+              container.parentNode.removeChild(container);
+            }
+          }, 4000);
+        }
+
+        function createPresenca(aula_id, turma_id) {
+          console.log("Aula ID: " + aula_id + ", Turma ID: " + turma_id + ", Aluno ID: " + aluno_id);
+          updateLocation().then(() => {
+            let lat = parseFloat(currentLatitude);
+            let long = parseFloat(currentLongitude);
+
+            if (isNaN(lat) || isNaN(long)) {
+              showToast("Latitude ou Longitude inválidas!", 'error');
+              return; // Não continua se os valores não forem números
+            }
+
+            var now = new Date();
+
+            // Prepara os dados para serem enviados
+            var formData = new FormData();
+            formData.append('aula_id', aula_id);
+            formData.append('aluno_id', aluno_id);
+            formData.append('turma_id', turma_id);
+            formData.append('data', now.toISOString().split('T')[0]);
+            formData.append('hora', now.toTimeString().split(' ')[0]);
+            formData.append('latitude', lat.toString());
+            formData.append('longitude', long.toString());
+
+            // Envia a solicitação para o servidor usando fetch
+            fetch('/create_presenca', {
+              method: 'POST',
+              body: formData, // Usar formData diretamente
+            })
+            .then(response => {
+              if (!response.ok) {
+                // Se a resposta não foi bem-sucedida, esperamos um JSON com uma mensagem de erro
+                return response.json().then(err => {
+                  throw new Error(err.message || 'Erro desconhecido'); // Use a mensagem do servidor
+                });
+              }
+              return response.json();
+            })
+            .then(data => {
+              showToast(data.message, data.status);  // Exibe o toast com a mensagem
+            })
+            .catch(error => {
+              showToast(error.message, 'error');  // Exibe o toast com o erro
+            });
+          });
+        }
+		
+		function createPresenca(rowElement) {
+			var aula_id = rowElement.cells[0].textContent;  // Aula ID
+			var turma_id = rowElement.cells[1].textContent; // Turma ID			
+			console.log("Aula ID: " + aula_id + ", Turma ID: " + turma_id + ", Aluno ID: " + aluno_id);
+			updateLocation().then(() => {
+            let lat = parseFloat(currentLatitude);
+            let long = parseFloat(currentLongitude);
+
+            if (isNaN(lat) || isNaN(long)) {
+              showToast("Latitude ou Longitude inválidas!", 'error');
+              return; // Não continua se os valores não forem números
+            }
+
+            var now = new Date();
+
+            // Prepara os dados para serem enviados
+            var formData = new FormData();
+            formData.append('aula_id', aula_id);
+            formData.append('aluno_id', aluno_id);
+            formData.append('turma_id', turma_id);
+            formData.append('data', now.toISOString().split('T')[0]);
+            formData.append('hora', now.toTimeString().split(' ')[0]);
+            formData.append('latitude', lat.toString());
+            formData.append('longitude', long.toString());
+
+            // Envia a solicitação para o servidor usando fetch
+            fetch('/create_presenca', {
+              method: 'POST',
+              body: formData, // Usar formData diretamente
+            })
+            .then(response => {
+              if (!response.ok) {
+                // Se a resposta não foi bem-sucedida, esperamos um JSON com uma mensagem de erro
+                return response.json().then(err => {
+                  throw new Error(err.message || 'Erro desconhecido'); // Use a mensagem do servidor
+                });
+              }
+              return response.json();
+            })
+            .then(data => {
+              showToast(data.message, data.status);  // Exibe o toast com a mensagem
+            })
+            .catch(error => {
+              showToast(error.message, 'error');  // Exibe o toast com o erro
+            });
+          });
         }
     </script>
-</head>
-<body>
+
+
     <h1>Bem-vindo, {{ nome }}</h1>
     <p id="location">Localização: Carregando...</p>
-    <table>
-        <tr>
-            <th>Turma</th>
-            <th>Professor</th>
-            <th>Horário</th>
-            <th>Ação</th>
-        </tr>
-        {% for turma in turmas %}
-        <tr>
-            <td>{{ turma[0] }}</td>
-            <td>{{ turma[1] }}</td>
-            <td>Horário</td>
-            <td><button class="register-btn">Registrar Presença</button></td>
-        </tr>
+	<button class="button-ok" id="update-btn" onclick="updateLocation()">Atualizar Localização</button>
+
+    <!-- Mensagens Flashadas -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div id="flash-messages">
+        {% for category, message in messages %}
+        <div class="alert {{ category }}">{{ message }}</div>
         {% endfor %}
-    </table>
+    </div>
+    {% endif %}
+    {% endwith %}
+
+	
+<!-- Aulas Disponíveis para Registro de Presença -->
+	<h2>Aulas Recentes ou Disponíveis</h2>
+	<table>
+		<tr>
+			<th style="display: none;">Aula ID</th>
+			<th style="display: none;">Turma ID</th>
+			<th>Turma</th>
+			<th>Professor</th>
+			<th>Data</th>
+			<th>Hora de Abertura</th>
+			<th>Hora de Fechamento</th>
+			<th>Latitude</th>
+			<th>Longitude</th>
+			<th>Ação</th>
+		</tr>
+		{% for aula in aulas_recentes %}
+		<tr>
+			<td style="display: none;">{{ aula[7] }}</td>
+			<td style="display: none;">{{ aula[8] }}</td>
+			<td>{{ aula[0] }}</td> <!-- Turma -->
+			<td>{{ aula[1] }}</td> <!-- Professor -->
+			<td>{{ aula[2] }}</td> <!-- Data -->
+			<td>{{ aula[3] }}</td> <!-- Hora de Abertura -->
+			<td>{{ aula[4] }}</td> <!-- Hora de Fechamento -->
+			<td>{{ aula[5] }}</td> <!-- Latitude -->
+			<td>{{ aula[6] }}</td> <!-- Longitude -->
+			<td>
+				<button class="button-ok" onclick="createPresenca(this.parentElement.parentElement)">Registrar Presença</button>
+			</td>
+
+
+		</tr>
+		{% endfor %}
+	</table>
 	
 	<h2>Aulas Disponíveis</h2>
+    <div>
+        <!-- Filtros (placeholder, precisa de implementação de JavaScript) -->
+        <label for="filtroDisciplina">Filtrar por Disciplina:</label>
+        <select id="filtroDisciplina">
+            <option value="todas">Todas</option>
+            <!-- Opções de disciplinas -->
+        </select>
+    </div>
+
+    <table>
+        {% for turma_nome, aulas in aulas_agrupadas_por_turma.items() %}
+        <tr class="turma-header" onclick="toggleDetalhes('{{ turma_nome }}')">
+            <th colspan="9">{{ turma_nome }}</th>
+        </tr>
+        <!-- Cabeçalhos de aula movidos para fora do loop de aulas -->
+        <tr class="aula-headers" id="headers-{{ turma_nome }}" style="display: none;">
+            <th>ID da Aula</th>
+            <th>ID da Turma</th>
+            <th>Data</th>
+            <th>Hora de Abertura</th>
+            <th>Hora de Fechamento</th>
+            <th>Latitude</th>
+            <th>Longitude</th>
+            <th>Status</th>
+            <th>Ação</th>
+        </tr>
+        {% for aula in aulas %}
+        <tr class="detalhe-aula" data-turma="{{ turma_nome }}" style="display: none;">
+            <td>{{ aula[0] }}</td> <!-- ID da Aula -->
+            <td>{{ aula[1] }}</td> <!-- ID da Turma -->
+            <td>{{ aula[2] }}</td> <!-- Data -->
+            <td>{{ aula[3] }}</td> <!-- Hora de Abertura -->
+            <td>{{ aula[4] }}</td> <!-- Hora de Fechamento -->
+            <td>{{ aula[5] }}</td> <!-- Latitude -->
+            <td>{{ aula[6] }}</td> <!-- Longitude -->
+            <td>{{ aula[8] }}</td> <!-- Status de Presença -->
+            <td><button class="button-ok" onclick="createPresenca(this.parentElement.parentElement)">Registrar Presença</button></td>
+
+        </tr>
+        {% endfor %}
+        {% endfor %}
+    </table>
+
+
+<h2>Relatório de Presenças</h2>
 <table>
     <tr>
-        <th>ID da Aula</th>
-        <th>ID da Turma</th>
-        <th>Data</th>
-        <th>Hora de Abertura</th>
-        <th>Hora de Fechamento</th>
-        <th>Latitude</th>
-        <th>Longitude</th>
-        <th>Ação</th>
+        <th>Disciplina</th>
+        <th>Total de Aulas</th>
+        <th>Total de Presenças nas Aulas</th>
+        <th>Percentual de Presença nas Aulas</th>
     </tr>
-    {% for aula in aulas %}
+    {% for item in dados_relatorio['presencas'] %}
     <tr>
-        <td>{{ aula[0] }}</td>
-        <td>{{ aula[1] }}</td>
-        <td>{{ aula[2] }}</td>
-        <td>{{ aula[3] }}</td>
-        <td>{{ aula[4] }}</td>
-        <td>{{ aula[5] }}</td>
-        <td>{{ aula[6] }}</td>
-        <td><button class="register-btn">Registrar Presença</button></td>
+        <td>{{ item[0] }}</td>
+        <td>{{ item[2] }}</td>
+        <td>{{ item[1] }}</td>
+        <td>{{ ((item[1] / item[2]) * 100) | round(2) if item[2] > 0 else 0 }}%</td>
     </tr>
     {% endfor %}
-</table>    <button id="update-btn" onclick="updateLocation()">Atualizar Localização</button>
+</table>
+
+<h2>Comparativo de Desempenho entre Disciplinas</h2>
+<div class="chart-container" style="position: relative; height:40vh; width:80vw">
+    <canvas id="graficoDesempenho"></canvas>
+</div>
+
+
+<script>
+    var ctx = document.getElementById('graficoDesempenho').getContext('2d');
+    var myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ dados_relatorio['dados_grafico'] | map(attribute='0') | list | tojson }},
+            datasets: [{
+                label: 'Taxa de Presença (%)',
+                data: {{ dados_relatorio['dados_grafico'] | map(attribute='1') | list | tojson }},
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+
+	
+	
     <div id="toast" class="toast"></div>
-    <p><a href="index.html">Voltar para a página inicial</a></p>
+    <a href="/exit" class="button-exit">Encerrar sessão</a>
+
 </body>
+
+<!-- Formulário Oculto para Criação de Presença -->
+<form id="createPresencaForm" method="post" action="/create_presenca" style="display:none;">
+  <input type="hidden" name="id" id="id">
+  <input type="hidden" name="aula_id" id="aula_id">
+  <input type="hidden" name="turma_id" id="turma_id">
+  <input type="hidden" name="aluno_id" id="aluno_id" value="{{ aluno_id }}">
+  <input type="hidden" name="data" id="data">
+  <input type="hidden" name="hora" id="hora">
+  <input type="hidden" name="latitude" id="latitude">
+  <input type="hidden" name="longitude" id="longitude">
+ 
+
+  <!-- Adicionar outros campos necessários aqui -->
+</form>
+
+    <!-- Scripts JavaScript para expansão da tabela -->
+    <script>
+        function toggleDetalhes(turma_nome) {
+            var detalhes = document.querySelectorAll('.detalhe-aula[data-turma="' + turma_nome + '"]');
+            var headers = document.getElementById('headers-' + turma_nome);
+            var isHidden = headers.style.display === "none";
+
+            // Alternar a exibição dos cabeçalhos
+            headers.style.display = isHidden ? "table-row" : "none";
+
+            detalhes.forEach(function (detalhe) {
+                detalhe.style.display = isHidden ? "table-row" : "none";
+            });
+        }
+    </script>
 </html>

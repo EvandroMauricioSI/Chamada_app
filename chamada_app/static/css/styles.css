@@ -43,66 +43,32 @@ h2 { /* Estilizando o h2 */
 form {max-width: 300px; margin: 20px auto;}
 
 img.education-icon { width: 100px; height: 100px; margin: 0px; }
-        
-input { width: 100%; padding: 10px; margin: 10px 0; }
 
-.button-back {
+.button-back, .button-ok, .button-exit {
     display: inline-block;
-    padding: 5px 10px;
-    min-width: 400px;
-    color: black;
+    padding: 10px 15px; /* Ajuste o padding conforme necessário */
+    min-width: 150px; /* Reduza o min-width */
+    color: white;
     text-align: center;
     text-decoration: none;
     font-size: 16px;
-    margin: 4px 2px;
+    margin: 5px; /* Espaçamento ao redor do botão */
     cursor: pointer;
-
     border: none;
-    box-shadow: 5px 5px grey;
+    box-shadow: 2px 2px grey;
 }
 .button-ok {
-    display: inline-block;
-    padding: 10px 20px;
-    min-width: 270px;
-    min-height: 30px;
     background-color: #4176e1;
-    color: white;
-    text-align: center;
-    font-size: 16px;
-    cursor: pointer;
-    border-radius: 8px;
-    border: none;
-    height: 100%;
-    margin: 5px;
- }
+}
+
+.button-ok:hover {
+    background-color: #054F77;
+}
 
 .button-exit {
-    display: inline-block;
-    padding: 10px 20px;
-    min-width: 270px;
-    min-height: 20px;
     background-color: red;
-    color: white;
-    text-align: center;
-    font-size: 16px;
-    cursor: pointer;
-    border-radius: 8px;
-    border: none;
-    height: 100%;
-    margin: 5px;
+}
 
-}.button-ok:hover { background-color: #054F77; color: #fff2bc}
-
-a {
-    color: black;
-    text-align: center;
-    text-decoration: none;
-    font-size: 16px;
-    margin: 4px 2px;
-    cursor: pointer;
-    border-radius: 8px;
-    border: none;
-   }
 .warn{
     color: red;
     font-size: 12px;
@@ -131,18 +97,16 @@ label {
 }
 
 /* Estilizando campos de entrada */
-input{
+input, select {
+    width: 100%;
+    padding: 20px;
+    margin: 10px 0;
     color: #474a51;
     font-size: 18px;
-    width: 90%;
-    padding: 8px;
-    margin: 0 auto;
-    border: 1px #ccc1c;
+    border: 1px solid #ccc;
     border-radius: 8px;
     background-color: #DCDCDC;
 }
-
-select { width: 100%; padding: 20px; margin: 10px 0; }
 
 /* Estilizando classes do dashboard_professor */
 .greeting { font-size: 24px; margin-bottom: 20px; }
@@ -173,3 +137,189 @@ th, td { padding: 10px; text-align: left; }
     padding: 5px 10px; }
 
 .update-location-btn:hover { background-color: #0056b3; }
+
+/* Toast container */
+#toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 999999;
+}
+
+/* Toast */
+.toast {
+  display: block;
+  background-color: #fff;
+  padding: 15px;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  color: #333;
+  border-left: 5px solid;
+}
+
+/* Success Toast */
+.toast-success {
+  border-left-color: #4CAF50;
+}
+
+/* Error Toast */
+.toast-error {
+  border-left-color: #F44336;
+}
+
+/* Information Toast */
+.toast-info {
+  border-left-color: #2196F3;
+}
+
+.show {
+    visibility: visible;
+    -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    animation: fadein 0.5s, fadeout 0.5s 2.5s;
+}
+
+@-webkit-keyframes fadein {
+    from {bottom: 0; opacity: 0;}
+    to {bottom: 30px; opacity: 1;}
+}
+
+.alert {
+  padding: 15px;
+  margin-bottom: 20px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+}
+
+.success {
+  color: #3c763d;
+  background-color: #dff0d8;
+  border-color: #d6e9c6;
+}
+
+.error {
+  color: #a94442;
+  background-color: #f2dede;
+  border-color: #ebccd1;
+}
+
+.inner-table {
+    width: 100%; /* Faz a sub-tabela ocupar toda a largura da célula da tabela principal */
+    border-collapse: collapse;
+}
+
+.inner-table th, .inner-table td {
+    border: 1px solid #ddd; /* Adiciona bordas para as células da sub-tabela */
+    padding: 8px;
+}
+
+.inner-table tr:nth-child(even){background-color: #f2f2f2;}
+
+.inner-table th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: #04AA6D;
+    color: white;
+}
+
+.form-button-group {
+    display: flex;
+    gap: 10px;
+    justify-content: center; /* Isso centraliza os botões na célula */
+}
+
+.form-button-group form {
+    margin: 0; /* Remove a margem dos formulários se necessário */
+}
+
+.form-button-group button {
+    margin: 0; /* Remove a margem dos botões se necessário */
+    flex-grow: 1; /* Isso faz com que os botões cresçam e ocupem o espaço disponível */
+}
+
+.button-group {
+    display: flex;
+    justify-content: space-around; /* This will space the buttons evenly */
+}
+
+.button-group form {
+    margin: 0; /* Resets any default margin */
+}
+
+.button-group button {
+    margin: 0; /* Resets any default margin */
+    flex: 1; /* Makes buttons grow equally to take up available space */
+}
+
+/* Estilos para o cabeçalho da turma e o botão */
+.turma-header th {
+    text-align: left; /* Alinha o texto à esquerda */
+    padding: 10px; /* Espaçamento */
+}
+
+.turma-header button {
+    padding: 5px 10px; /* Ajuste o tamanho do botão */
+    background-color: #4176e1; /* Cor de fundo */
+    color: white; /* Cor do texto */
+    border: none; /* Sem borda */
+    border-radius: 5px; /* Borda arredondada */
+    cursor: pointer; /* Cursor de mão */
+}
+
+.turma-header button:hover {
+    background-color: #054F77; /* Cor ao passar o mouse */
+}
+
+/* Estilos para o botão Excluir Aula */
+button.excluir-aula {
+    padding: 5px 10px; /* Ajuste o tamanho do botão */
+    background-color: red; /* Cor de fundo para o botão Excluir Aula */
+    color: white; /* Cor do texto */
+    border: none; /* Sem borda */
+    border-radius: 5px; /* Borda arredondada */
+    cursor: pointer; /* Cursor de mão */
+}
+
+button.excluir-aula:hover {
+    background-color: darkred; /* Cor ao passar o mouse */
+}
+
+button.registrar {
+    padding: 5px 10px;
+    background-color: #007BFF; /* Cor de fundo azul */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button.registrar:hover {
+    background-color: #0056b3; /* Cor mais escura ao passar o mouse */
+}
+
+/* Estilos para o botão Excluir (dentro da lista de alunos) */
+button.excluir {
+    padding: 5px 10px;
+    background-color: red;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button.excluir:hover {
+    background-color: darkred;
+}
+
+.button-cell {
+    display: flex;
+    justify-content: center; /* Centraliza os botões horizontalmente */
+    gap: 10px; /* Espaçamento entre os botões */
+}
+
+.chart-container {
+    border: 2px solid #ccc; /* Adicione a cor e o estilo da borda conforme necessário */
+    padding: 10px;
+    margin: auto; /* Para centralizar */
+}

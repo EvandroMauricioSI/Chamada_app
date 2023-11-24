@@ -3,8 +3,6 @@ pip install Flask Werkzeug geopy
 pip install geopy
 pip install pandas xlsxwriter
 
-
-
 cd chamada_app
 sqlite3 chamada.db < schema.sql
 sqlite3 chamada.db < populate_db.sql
@@ -17,3 +15,5 @@ python app_mod.py
 
 //python app_test_route.py
 //python app_dashboard_test_route
+
+Nota Importante: Apesar de ser uma versão estável, os dados de aula foram populados com horários que pode dar alguma incompatibilidade.

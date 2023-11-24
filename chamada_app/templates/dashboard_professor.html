@@ -3,48 +3,9 @@
 <head>
     <link rel="stylesheet" type="text/css" href="static/css/styles.css">
     <title>Dashboard - Professor</title>
-    <style>
-        /* Estilo para a mensagem toast */
-        .toast {
-            visibility: hidden;
-            max-width: 250px;
-            height: 50px;
-            line-height: 50px;
-            margin-left: -125px;
-            padding: 0 20px;
-            background-color: #333;
-            color: #fff;
-            text-align: center;
-            border-radius: 2px;
-            position: fixed;
-            z-index: 1;
-            left: 50%;
-            bottom: 30px;
-            font-size: 17px;
-            white-space: nowrap;
-        }
-        .show {
-            visibility: visible;
-            -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
-            animation: fadein 0.5s, fadeout 0.5s 2.5s;
-        }
-        @-webkit-keyframes fadein {
-            from {bottom: 0; opacity: 0;}
-            to {bottom: 30px; opacity: 1;}
-        }
-        @keyframes fadein {
-            from {bottom: 0; opacity: 0;}
-            to {bottom: 30px; opacity: 1;}
-        }
-        @-webkit-keyframes fadeout {
-            from {bottom: 30px; opacity: 1;}
-            to {bottom: 0; opacity: 0;}
-        }
-        @keyframes fadeout {
-            from {bottom: 30px; opacity: 1;}
-            to {bottom: 0; opacity: 0;}
-        }
-    </style>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	
+    
     <script>
         function getLocation() {
             if (navigator.geolocation) {
@@ -85,137 +46,358 @@
             x.innerText = message;
             setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
         }
+		
+		function getTurmaIdByName(turmaNome) {
+			return fetch('/get_turma_id/' + encodeURIComponent(turmaNome))
+				.then(response => response.json())
+				.then(data => {
+					if (data.status === 'success') {
+						return data.turma_id;
+					} else {
+						throw new Error('Erro ao buscar ID da turma: ' + data.message);
+					}
+				});
+		}
+		
+		function createLesson(turmaNome) {
+			getTurmaIdByName(turmaNome).then(turmaId => {
+				updateLocation().then(() => {
+					let lat = parseFloat(latitude);
+					let long = parseFloat(longitude);
+
+					if (isNaN(lat) || isNaN(long)) {
+						showToast("Latitude ou Longitude inválidas!", 'error');
+						return;
+					}
+
+					var now = new Date();
+					var closingTime = new Date(now.getTime() + 4*60*60*1000); // Assume 4 horas para a duração da aula
+
+					var formData = new FormData();
+					formData.append('turma_id', turmaId);
+					formData.append('data', now.toISOString().split('T')[0]);
+					formData.append('horaAbertura', now.toTimeString().split(' ')[0].slice(0, 8));
+					formData.append('horaFechamento', closingTime.toTimeString().split(' ')[0].slice(0, 8));
+					formData.append('latitude', lat.toString());
+					formData.append('longitude', long.toString());
+
+					fetch('/create_lesson', {
+						method: 'POST',
+						body: formData
+					})
+					.then(response => response.json())
+					.then(data => {
+						showToast(data.message, data.status === 'error' ? 'error' : 'success');
+					})
+					.catch(error => {
+						showToast('Erro ao enviar solicitação: ' + error, 'error');
+					});
+				});
+			}).catch(error => {
+				showToast('Erro ao buscar ID da turma: ' + error.message, 'error');
+			});
+		}
 
 		
     </script>
 </head>
 <body>
+    <img src="/static/images/uff_brasao.png" alt="Icone Educacional" class="education-icon">
+
     <div class="greeting">
         <h1>Olá, Professor: {{ nome }}</h1>
         <p id="location">Localização: Carregando...</p>
+		<button id="update-btn" onclick="updateLocation()">Atualizar Localização</button>
     </div>
-	<div class="options">
-        <a href="#" class="button-ok">Ver Turmas em que estou associado</a>
-        <a href="#" class="button-ok">Consultar Presenças das Turmas</a>
-        <a href="#" class="button-ok">Editar Perfil</a>
-        <a href="/exit" class="button-exit"> Sair </a>
+
+    <div class="stats">
+        <h3>Registros de Presença</h3>
     </div>
-	<div class="stats">
-        <!-- Placeholder for attendance statistics from the backend -->
-        <h3>Estatísticas de Presença</h3>
-        <p>Presenças registradas: [número]</p>
+
+    <div id="flash-messages">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <script>
+                    showToast("{{ message }}", "{{ category }}");
+                </script>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
     </div>
-    <table>
-        <tr>
-            <th>Turma</th>
-			<th>Data</th>
-            <th>HorárioInicio</th>
-			<th>HorárioFinal</th>
-			<th>Latitude</th>
-			<th>Longitude</th>
-            <th>Ação</th>
+	
+	<div id="toast-container"></div>
+	
+<!-- Tabela de Turmas e Aulas -->
+<h2>Turmas e Aulas</h2>
+<table>	
+    {% for turma_nome, aulas in aulas_agrupadas_por_turma.items() %}
+		<tr class="turma-header" onclick="toggleAulas('{{ turma_nome }}')">
+			<th colspan="7">{{ turma_nome }}</th> <!-- Reduza o colspan para criar espaço para o botão -->
+			<th>
+				<button onclick="createLesson('{{ turma_nome }}')">Criar Aula</button> <!-- Botão Criar Aula -->
+			</th>
+		</tr>
+
+    {% for aula in aulas %}
+        <tr class="detalhe-aula" data-turma="{{ turma_nome }}" data-aula-id="{{ aula[0] }}" style="display: none;">
+            <td onclick="handleAulaClick('{{ aula[0] }}', event)">{{ aula[0] }}</td> <!-- ID da Aula -->
+            <td>{{ aula[1] }}</td> <!-- ID da Turma -->
+            <td>{{ aula[2] }}</td> <!-- Data -->
+            <td>{{ aula[3] }}</td> <!-- Hora de Abertura -->
+            <td>{{ aula[4] }}</td> <!-- Hora de Fechamento -->
+            <td>{{ aula[5] }}</td> <!-- Latitude -->
+            <td>{{ aula[6] }}</td> <!-- Longitude -->
+            <td>
+                <form action="/excluir_aula/{{ aula[0] }}" method="post" onsubmit="return confirm('Tem certeza que deseja excluir esta aula?');" style="display: inline;">
+                    <button class="excluir-aula" button type="submit">Excluir Aula</button>
+                </form>
+            </td>
         </tr>
-        {% for turma in turmas %}
-        <tr>
-            <td>{{ turma[0] }}</td>
-			<td>DataFromAula</td>
-            <td>HoraAberturaFromAula</td>
-			<td>HoraFechamentoFromAula</td>
-			<td>LatitudeFromAula</td>
-			<td>LongitudeFromAula</td>
-            <td><button onclick="createLesson('{{ turma[0] }}')">Criar Aula</button></td>
+        <tr class="detalhe-alunos" id="detalhe-alunos-{{ aula[0] }}" style="display: none;">
+            <td colspan="8">
+                <table>
+                    <!-- Assumindo que você terá uma forma de obter a lista de alunos para esta aula específica -->
+                    {% for aluno in aula.alunos %}
+                    <tr>
+                        <td>{{ aluno.username }}</td>
+                        <td>{{ aluno.status }}</td>
+						<td>
+								<form action="/registrar_presenca" method="post" style="display: inline;">
+									<input type="hidden" name="aluno_id" value="{{ aluno.id }}">
+									<input type="hidden" name="aula_id" value="{{ aula[0] }}">
+									<button class="registrar" type="submit">Registrar</button>
+								</form>
+								<form action="/excluir_presenca" method="post" style="display: inline;">
+									<input type="hidden" name="aluno_id" value="{{ aluno.id }}">
+									<input type="hidden" name="aula_id" value="{{ aula[0] }}">
+									<button class="excluir" type="submit">Excluir</button>
+								</form>
+						</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </td>
+        </tr>
+    {% endfor %}
+    {% endfor %}
+</table>
+
+<!-- Início da seção de Relatório de Presenças por Disciplina -->
+<h2>Relatório de Presenças por Disciplina</h2>
+
+<a href="/exportar_relatorio" class="button-ok">Exportar Relatório das Turmas</a>
+
+<table>
+    <tr>
+        <th>Disciplina</th>
+        <th>Total de Aulas</th>
+        <th>Total de Alunos</th>
+        <th>Total de Presenças Registradas</th>
+        <th>Total de Presenças Possíveis</th>
+        <th>Percentual Médio de Presença</th>
+    </tr>
+    {% for disciplina in dados_relatorio['presencas_por_disciplina'] %}
+    <tr>
+        <td>{{ disciplina[0] }}</td> <!-- Nome da disciplina -->
+        <td>{{ disciplina[1] }}</td> <!-- Total de Aulas -->
+        <td>{{ disciplina[2] }}</td> <!-- Total de Alunos -->
+        <td>{{ disciplina[3] }}</td> <!-- Total de Presenças Registradas -->
+        <td>{{ disciplina[4] }}</td> <!-- Total de Presenças Possíveis -->
+        <td>{{ disciplina[5] | default(0) | round(2) }}%</td> <!-- Percentual Médio de Presença -->
+    </tr>
+    {% endfor %}
+</table>
+<!-- Fim da seção de Relatório de Presenças por Disciplina -->
+
+	
+<!-- Scripts JavaScript para expansão da tabela -->
+    <script>
+		function toggleAulas(turmaNome) {
+			// Obter a linha do cabeçalho da turma clicada
+			var turmaHeader = document.querySelector('.turma-header[onclick="toggleAulas(\'' + turmaNome + '\')"]');
 			
-        </tr>
-        {% endfor %}
-    </table>
+			// Seleciona todas as linhas de detalhe para a turma clicada
+			var detalhes = document.querySelectorAll('.detalhe-aula[data-turma="' + turmaNome + '"]');
+			var shouldShow = Array.from(detalhes).some(detalhe => detalhe.style.display === "none");
+
+			// Verifica se o cabeçalho para aulas já existe abaixo da turma clicada
+			var aulasHeader = turmaHeader.nextElementSibling;
+			if(aulasHeader && !aulasHeader.classList.contains('detalhe-aula-header')) {
+				// Cria o cabeçalho da tabela de aulas se não existir
+				aulasHeader = document.createElement('tr');
+				aulasHeader.className = 'detalhe-aula-header';
+				aulasHeader.innerHTML = `
+					<th>ID Aula</th>
+					<th>ID Turma</th>
+					<th>Data</th>
+					<th>Hora Abertura</th>
+					<th>Hora Fechamento</th>
+					<th>Latitude</th>
+					<th>Longitude</th>
+					<th>Ações</th>
+				`;
+				// Insere o cabeçalho da tabela de aulas imediatamente após a linha da turma clicada
+				turmaHeader.parentNode.insertBefore(aulasHeader, turmaHeader.nextSibling);
+			}
+
+			// Mostrar ou ocultar o cabeçalho da tabela de aulas
+			aulasHeader.style.display = shouldShow ? "table-row" : "none";
+
+			detalhes.forEach(function (detalhe) {
+				// Alterna a visibilidade das linhas de detalhe
+				detalhe.style.display = shouldShow ? "table-row" : "none";
+
+				// Se as linhas estão sendo ocultadas, oculta também os detalhes dos alunos para cada aula
+				if (!shouldShow) {
+					var aulaId = detalhe.getAttribute('data-aula-id');
+					var detalhesAlunosDiv = document.getElementById('detalhe-alunos-' + aulaId);
+					if (detalhesAlunosDiv) {
+						detalhesAlunosDiv.style.display = "none";
+					}
+				}
+			});
+		}
+		
+		function toggleDetalhesAlunos(aulaId) {
+			var detalhesAlunosDiv = document.getElementById('detalhe-alunos-' + aulaId);
+			var isHidden = detalhesAlunosDiv.style.display === "none";
+			detalhesAlunosDiv.style.display = isHidden ? "table-row" : "none";
+
+			// Se está abrindo, buscar os detalhes da aula
+			if (isHidden) {
+				buscarDetalhesAula(aulaId);
+			}
+		}
+		
+		
+        function showToast(message, status) {
+			var toast = document.createElement('div');
+			toast.classList.add('toast');
+
+			if (status === 'success') {
+				toast.classList.add('toast-success');
+			} else if (status === 'error') {
+				toast.classList.add('toast-error');
+			} else {
+				toast.classList.add('toast-info');
+			}
+
+			toast.textContent = message;
+
+			var container = document.getElementById('toast-container');
+			container.appendChild(toast);
+
+			setTimeout(function() {
+				container.removeChild(toast);
+			}, 4000);
+		}
+		
+		function handleAulaClick(aulaId, event) {
+			event.stopPropagation(); // Impedir a propagação do evento
+			var detalhesAlunosDiv = document.getElementById('detalhe-alunos-' + aulaId);
+			var isHidden = detalhesAlunosDiv.style.display === "none";
+			detalhesAlunosDiv.style.display = isHidden ? "table-row" : "none";
+
+			// Buscar detalhes da aula se estiver abrindo
+			if (isHidden) {
+				buscarDetalhesAula(aulaId);
+			}
+		}
+		
+		function buscarDetalhesAula(aulaId) {
+			fetch('/aula_detalhes/' + aulaId)
+			.then(response => response.json())
+			.then(dados => {
+				const detalhesAlunosDiv = document.getElementById('detalhe-alunos-' + aulaId);
+				let html = '<td colspan="8"><table class="inner-table"><thead><tr><th>Nome do Aluno</th><th>Status</th><th>Ações</th></tr></thead><tbody>';
+				dados.forEach(aluno => {
+				const isPresent = aluno.status === 'Presente';
+					html += `<tr>
+								<td>${aluno.username}</td>
+								<td>${aluno.status ?? 'Ausente'}</td>
+								<td class="button-cell">
+									<form action="/registrar_presenca" method="post">
+										<input type="hidden" name="aluno_id" value="${aluno.id}">
+										<input type="hidden" name="aula_id" value="${aulaId}">
+										<button class="registrar"  type="submit" ${isPresent ? 'disabled' : ''}>Registrar</button>
+									</form>
+									<form action="/excluir_presenca" method="post">
+										<input type="hidden" name="aluno_id" value="${aluno.id}">
+										<input type="hidden" name="aula_id" value="${aulaId}">
+										<button class="excluir" type="submit" ${!isPresent ? 'disabled' : ''}>Excluir</button>
+									</form>
+								</td>
+							 </tr>`;
+				});
+				html += '</tbody></table></td>';
+				detalhesAlunosDiv.innerHTML = html;
+			})
+			.catch(error => console.error('Erro ao buscar detalhes da aula:', error));
+		}
+		
+    </script>
 	
-	<button id="update-btn" onclick="updateLocation()">Atualizar Localização</button>
-	
-	<td><button class="register-btn" onclick="habilitarPresenca(this)">Habilitar Presença</button></td>
-	
-	
+		<!-- Localização para o gráfico de barras -->
+	<div class="chart-container" style="position: relative; height:40vh; width:80vw">
+		<canvas id="graficoDesempenho"></canvas>
+	</div>
+    
     <div id="toast" class="toast"></div>
-    <p><a href="index.html">Voltar para a página inicial</a></p>
+	
 
 <script>
-function habilitarPresenca(btn) {
-  btn.disabled = true; // Desabilita o botão imediatamente
-  setTimeout(function() {
-    btn.innerText = 'Fechar presença'; // Altera o texto do botão após 2 segundos
-    btn.disabled = false; // Reabilita o botão após 2 segundos
-    // Faz uma solicitação AJAX para registrar a abertura da presença
-    fetch('/registrar_abertura_presenca', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        turma: btn.getAttribute('data-turma'), // Pega a turma da linha da tabela
-        // Outros dados como data, hora e localização serão tratados no servidor
-      })
-    })
-    .then(response => response.json())
-    .then(data => {
-      console.log(data); // Tratamento de resposta do servidor
+    var ctx = document.getElementById('graficoDesempenho').getContext('2d');
+    var dadosGrafico = {{ dados_grafico_json | safe }};
+    var myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: dadosGrafico.map(item => item.nome_disciplina),
+            datasets: [{
+                label: 'Percentual Médio de Presença (%)',
+                data: dadosGrafico.map(item => item.percentual_presenca),
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    callback: function(value) { if (Number.isInteger(value)) { return value + '%'; } },
+                    suggestedMax: 100  // Como é um percentual, o máximo sugerido é 100
+                }
+            },
+            tooltips: {
+                callbacks: {
+                    label: function(tooltipItem) {
+                        return tooltipItem.yLabel + '%';
+                    }
+                }
+            }
+        }
     });
-  }, 2000);
-}
 </script>
-</body>
-</html>
+
+	
+	
+	
+    <a href="/exit" class="button-exit"> Sair </a>
+
 
 <!-- Formulário Oculto para Criação de Aula -->
 <form id="createLessonForm" method="post" action="/create_lesson" style="display:none;">
+  <input type="hidden" name="id" id="id">
   <input type="hidden" name="turma_id" id="turma_id">
   <input type="hidden" name="data" id="data">
   <input type="hidden" name="horaAbertura" id="horaAbertura">
   <input type="hidden" name="horaFechamento" id="horaFechamento">
   <input type="hidden" name="latitude" id="latitude">
   <input type="hidden" name="longitude" id="longitude">
- 
-
   <!-- Adicionar outros campos necessários aqui -->
 </form>
 
-<script>
-function createLesson(turma_id) {
-  console.log('ID da turma recebido na função createLesson:', turma_id);
-  updateLocation().then(() => {
-    let lat = parseFloat(latitude);
-    let long = parseFloat(longitude);
+</body>
 
-    if (isNaN(lat) || isNaN(long)) {
-      showToast("Latitude ou Longitude inválidas!");
-      return; // Não continua se os valores não forem números
-    }
-	
-    var now = new Date();
-    var closingTime = new Date(now.getTime() + 4*60*60*1000);
-
-    // Definir valores do formulário
-    document.getElementById('turma_id').value = turma_id;
-    document.getElementById('latitude').value = latitude;
-    document.getElementById('longitude').value = longitude;
-    document.getElementById('data').value = now.toISOString().split('T')[0];
-    document.getElementById('horaAbertura').value = now.toTimeString().split(' ')[0];
-    document.getElementById('horaFechamento').value = closingTime.toTimeString().split(' ')[0];
-
-    // Logs para depuração
-    console.log('turma_id:', turma_id);
-    console.log('latitude:', latitude);
-    console.log('longitude:', longitude);
-    console.log('data:', document.getElementById('data').value);
-    console.log('horaAbertura:', document.getElementById('horaAbertura').value);
-    console.log('horaFechamento:', document.getElementById('horaFechamento').value);
-
-    // Submeter o formulário
-    document.getElementById('createLessonForm').submit();
-
-  }).catch(error => {
-    showToast("Erro ao atualizar a localização: " + error);
-  });
-}
-
-
-
-</script>
+</html>
